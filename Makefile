@@ -58,7 +58,7 @@ release-cp: release-dir
 		tuned-adm.bash dbus.conf recommend.conf tuned-main.conf 00_tuned \
 		bootcmdline modules.conf com.redhat.tuned.policy \
 		com.redhat.tuned.gui.policy tuned-gui.py tuned-gui.glade \
-		tuned-gui.desktop $(VERSIONED_NAME)
+		tuned-gui.desktop setup.py $(VERSIONED_NAME)
 	cp -a doc experiments libexec man profiles systemtap tuned contrib icons \
 		$(VERSIONED_NAME)
 
@@ -123,8 +123,6 @@ install-dirs:
 	mkdir -p $(DESTDIR)$(TUNED_USER_RECOMMEND_DIR)
 
 install: install-dirs
-	# library
-	cp -a tuned $(DESTDIR)$(PYTHON_SITELIB)
 
 	# binaries
 	install -Dm 0755 tuned.py $(DESTDIR)/usr/sbin/tuned
@@ -143,63 +141,11 @@ install: install-dirs
 		$(DESTDIR)/usr/sbin/varnetload
 	touch -r systemtap/varnetload $(DESTDIR)/usr/sbin/varnetload
 
-	# glade
-	install -Dpm 0644 tuned-gui.glade $(DESTDIR)$(DATADIR)/tuned/ui/tuned-gui.glade
-
 	# tools
 	install -Dm 0755 experiments/powertop2tuned.py $(DESTDIR)/usr/bin/powertop2tuned
 	sed -i -r -e $(SHEBANG_REWRITE_REGEX) \
 		$(DESTDIR)/usr/bin/powertop2tuned
 	touch -r experiments/powertop2tuned.py $(DESTDIR)/usr/bin/powertop2tuned
-
-	# configuration files
-	install -Dpm 0644 tuned-main.conf $(DESTDIR)$(SYSCONFDIR)/tuned/tuned-main.conf
-	# None profile in the moment, autodetection will be used
-	echo -n > $(DESTDIR)$(SYSCONFDIR)/tuned/active_profile
-	echo -n > $(DESTDIR)$(SYSCONFDIR)/tuned/profile_mode
-	install -Dpm 0644 bootcmdline $(DESTDIR)$(SYSCONFDIR)/tuned/bootcmdline
-	install -Dpm 0644 modules.conf $(DESTDIR)$(SYSCONFDIR)/modprobe.d/tuned.conf
-
-	# profiles & system config
-	cp -a profiles/* $(DESTDIR)$(TUNED_PROFILESDIR)/
-	mv $(DESTDIR)$(TUNED_PROFILESDIR)/realtime/realtime-variables.conf \
-		$(DESTDIR)$(SYSCONFDIR)/tuned/realtime-variables.conf
-	mv $(DESTDIR)$(TUNED_PROFILESDIR)/realtime-virtual-guest/realtime-virtual-guest-variables.conf \
-		$(DESTDIR)$(SYSCONFDIR)/tuned/realtime-virtual-guest-variables.conf
-	mv $(DESTDIR)$(TUNED_PROFILESDIR)/realtime-virtual-host/realtime-virtual-host-variables.conf \
-		$(DESTDIR)$(SYSCONFDIR)/tuned/realtime-virtual-host-variables.conf
-	mv $(DESTDIR)$(TUNED_PROFILESDIR)/cpu-partitioning/cpu-partitioning-variables.conf \
-		$(DESTDIR)$(SYSCONFDIR)/tuned/cpu-partitioning-variables.conf
-	mv $(DESTDIR)$(TUNED_PROFILESDIR)/sap-hana-vmware/sap-hana-vmware-variables.conf \
-		$(DESTDIR)$(SYSCONFDIR)/tuned/sap-hana-vmware-variables.conf
-	install -pm 0644 recommend.conf $(DESTDIR)$(TUNED_RECOMMEND_DIR)/50-tuned.conf
-
-	# bash completion
-	install -Dpm 0644 tuned-adm.bash $(DESTDIR)$(BASH_COMPLETIONS)/tuned-adm
-
-	# runtime directory
-	install -Dpm 0644 tuned.tmpfiles $(DESTDIR)$(TMPFILESDIR)/tuned.conf
-
-	# systemd units
-	install -Dpm 0644 tuned.service $(DESTDIR)$(UNITDIR)/tuned.service
-
-	# dbus configuration
-	install -Dpm 0644 dbus.conf $(DESTDIR)$(SYSCONFDIR)/dbus-1/system.d/com.redhat.tuned.conf
-
-	# grub template
-	install -Dpm 0755 00_tuned $(DESTDIR)$(SYSCONFDIR)/grub.d/00_tuned
-
-	# polkit configuration
-	install -Dpm 0644 com.redhat.tuned.policy $(DESTDIR)$(DATADIR)/polkit-1/actions/com.redhat.tuned.policy
-	install -Dpm 0644 com.redhat.tuned.gui.policy $(DESTDIR)$(DATADIR)/polkit-1/actions/com.redhat.tuned.gui.policy
-
-	# manual pages
-	$(foreach man_section, 5 7 8, $(foreach file, $(wildcard man/*.$(man_section)), \
-		install -Dpm 0644 $(file) $(DESTDIR)$(DATADIR)/man/man$(man_section)/$(notdir $(file));))
-
-	# documentation
-	cp -a doc/* $(DESTDIR)$(DOCDIR)
-	cp AUTHORS COPYING README $(DESTDIR)$(DOCDIR)
 
 	# libexec scripts
 	$(foreach file, $(wildcard libexec/*), \
@@ -208,13 +154,6 @@ install: install-dirs
 			$(DESTDIR)/usr/libexec/tuned/$(notdir $(file)); \
 		touch -r $(file) $(DESTDIR)/usr/libexec/tuned/$(notdir $(file)); \
 		)
-
-	# icon
-	install -Dpm 0644 icons/tuned.svg $(DESTDIR)$(DATADIR)/icons/hicolor/scalable/apps/tuned.svg
-
-	# desktop file
-	install -dD $(DESTDIR)$(DATADIR)/applications
-	desktop-file-install --dir=$(DESTDIR)$(DATADIR)/applications tuned-gui.desktop
 
 clean:
 	find -name "*.pyc" | xargs rm -f
