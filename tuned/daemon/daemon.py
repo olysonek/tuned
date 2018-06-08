@@ -131,12 +131,13 @@ class Daemon(object):
 
 		self._unit_manager.create(self._profile.units)
 		self._save_active_profile(self._profile.name, self._manual)
-		self._unit_manager.start_tuning()
+		messages = self._unit_manager.start_tuning()
+		msg = "\n".join(messages) if messages else "OK"
 		self._profile_applied.set()
 		log.info("static tuning from profile '%s' applied" % self._profile.name)
 		if self._daemon:
 			exports.start()
-		self._notify_profile_changed(self._profile.name, True, "OK")
+		self._notify_profile_changed(self._profile.name, True, msg)
 
 		if self._daemon:
 			# In python 2 interpreter with applied patch for rhbz#917709 we need to periodically

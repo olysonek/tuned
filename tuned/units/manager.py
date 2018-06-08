@@ -99,9 +99,13 @@ class Manager(object):
 			self._try_call("update_monitors", None, monitor.update)
 
 	def start_tuning(self):
+		messages = []
 		for instance in self._instances:
 			self._try_call("start_tuning", None,
 					instance.apply_tuning)
+			messages.extend(instance.messages)
+			del instance.messages[:]
+		return messages
 
 	def verify_tuning(self, ignore_missing):
 		ret = True

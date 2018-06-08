@@ -99,7 +99,9 @@ class SystemdPlugin(base.Plugin):
 		if full_rollback:
 			log.info("removing '%s' systemd tuning previously added by Tuned" % consts.SYSTEMD_CPUAFFINITY_VAR)
 			self._remove_systemd_tuning()
-			log.info("you may need to manualy run 'dracut -f' to update the systemd configuration in initrd image")
+			msg = "you may need to manualy run 'dracut -f' to update the systemd configuration in initrd image"
+			instance.messages.append(msg)
+			log.info(msg)
 
 	# convert cpulist from systemd syntax to Tuned syntax and unpack it
 	def _cpulist_convert_unpack(self, cpulist):

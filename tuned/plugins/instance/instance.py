@@ -16,6 +16,8 @@ class Instance(object):
 		self._has_dynamic_tuning = False
 		self._devices = set()
 
+		self.messages = []
+
 	# properties
 
 	@property

@@ -215,6 +215,8 @@ class Admin(object):
 				if not self._daemon_action_result:
 					print("Error changing profile: %s" % self._daemon_action_errstr)
 					return self._controller.exit(False)
+				elif self._daemon_action_errstr != "OK":
+					print(self._daemon_action_errstr)
 				return self._controller.exit(True)
 		return False
 
