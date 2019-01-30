@@ -1,0 +1,8 @@
+[style]
+based_on_style = pep8
+use_tabs = True
+blank_lines_around_top_level_definition = 1
+indent_width = 8
+continuation_indent_width = 12
+split_penalty_logical_operator = 0
+split_penalty_after_opening_bracket = 0
