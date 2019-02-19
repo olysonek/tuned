@@ -5,8 +5,9 @@ class Unit(object):
 	Unit description.
 	"""
 
-	__slots__ = [ "_name", "_type", "_enabled", "_replace", "_devices", "_devices_udev_regex", \
-		"_script_pre", "_script_post", "_options" ]
+	__slots__ = [ "_name", "_type", "_enabled", "_replace", "_devices",
+			"_devices_udev_regex", "_script_pre", "_script_post",
+			"_fail_if_unsupported", "_options" ]
 
 	def __init__(self, name, config):
 		self._name = name
@@ -17,6 +18,9 @@ class Unit(object):
 		self._devices_udev_regex = config.pop("devices_udev_regex", None)
 		self._script_pre = config.pop("script_pre", None)
 		self._script_post = config.pop("script_post", None)
+		self._fail_if_unsupported = config.pop("fail_if_unsupported",
+				False) in [True, "true", 1, "1"]
+
 		self._options = collections.OrderedDict(config)
 
 	@property
@@ -74,6 +78,10 @@ class Unit(object):
 	@script_post.setter
 	def script_post(self, value):
 		self._script_post = value
+
+	@property
+	def fail_if_unsupported(self):
+		return self._fail_if_unsupported
 
 	@property
 	def options(self):

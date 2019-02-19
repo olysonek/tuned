@@ -2,13 +2,16 @@ class Instance(object):
 	"""
 	"""
 
-	def __init__(self, plugin, name, devices_expression, devices_udev_regex, script_pre, script_post, options):
+	def __init__(self, plugin, name, devices_expression,
+			devices_udev_regex, script_pre, script_post,
+			fail_if_unsupported, options):
 		self._plugin = plugin
 		self._name = name
 		self._devices_expression = devices_expression
 		self._devices_udev_regex = devices_udev_regex
 		self._script_pre = script_pre
 		self._script_post = script_post
+		self._fail_if_unsupported = fail_if_unsupported
 		self._options = options
 
 		self._active = True
@@ -25,6 +28,10 @@ class Instance(object):
 	@property
 	def name(self):
 		return self._name
+
+	@property
+	def fail_if_unsupported(self):
+		return self._fail_if_unsupported
 
 	@property
 	def active(self):
