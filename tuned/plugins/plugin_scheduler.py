@@ -470,7 +470,7 @@ class SchedulerPlugin(base.Plugin):
 								self._remove_pid(instance, int(event.tid))
 
 	@command_custom("ps_whitelist", per_device = False)
-	def _ps_whitelist(self, enabling, value, verify, ignore_missing):
+	def _ps_whitelist(self, instance, enabling, value, verify, ignore_missing):
 		# currently unsupported
 		if verify:
 			return None
@@ -478,7 +478,7 @@ class SchedulerPlugin(base.Plugin):
 			self._ps_whitelist = "|".join(["(%s)" % v for v in re.split(r"(?<!\\);", str(value))])
 
 	@command_custom("ps_blacklist", per_device = False)
-	def _ps_blacklist(self, enabling, value, verify, ignore_missing):
+	def _ps_blacklist(self, instance, enabling, value, verify, ignore_missing):
 		# currently unsupported
 		if verify:
 			return None
@@ -671,7 +671,7 @@ class SchedulerPlugin(base.Plugin):
 		return res
 
 	@command_custom("isolated_cores", per_device = False, priority = 10)
-	def _isolated_cores(self, enabling, value, verify, ignore_missing):
+	def _isolated_cores(self, instance, enabling, value, verify, ignore_missing):
 		affinity = None
 		if value is not None:
 			isolated = set(self._cmd.cpulist_unpack(value))

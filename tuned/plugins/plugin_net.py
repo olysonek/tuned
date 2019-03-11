@@ -408,17 +408,17 @@ class NetTuningPlugin(base.Plugin):
 		return None
 
 	@command_custom("features", per_device = True)
-	def _features(self, start, value, device, verify, ignore_missing):
+	def _features(self, instance, start, value, device, verify, ignore_missing):
 		return self._custom_parameters("features", start, value, device, verify)
 
 	@command_custom("coalesce", per_device = True)
-	def _coalesce(self, start, value, device, verify, ignore_missing):
+	def _coalesce(self, instance, start, value, device, verify, ignore_missing):
 		return self._custom_parameters("coalesce", start, value, device, verify)
 
 	@command_custom("pause", per_device = True)
-	def _pause(self, start, value, device, verify, ignore_missing):
+	def _pause(self, instance, start, value, device, verify, ignore_missing):
 		return self._custom_parameters("pause", start, value, device, verify)
 
 	@command_custom("ring", per_device = True)
-	def _ring(self, start, value, device, verify, ignore_missing):
+	def _ring(self, instance, start, value, device, verify, ignore_missing):
 		return self._custom_parameters("ring", start, value, device, verify)

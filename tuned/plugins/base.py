@@ -499,7 +499,7 @@ class Plugin(object):
 
 	def _execute_device_command(self, instance, command, device, new_value):
 		if command["custom"] is not None:
-			command["custom"](True, new_value, device, False, False)
+			command["custom"](instance, True, new_value, device, False, False)
 		else:
 			new_value = self._check_and_save_value(instance, command, device, new_value)
 			if new_value is not None:
@@ -507,7 +507,7 @@ class Plugin(object):
 
 	def _execute_non_device_command(self, instance, command, new_value):
 		if command["custom"] is not None:
-			command["custom"](True, new_value, False, False)
+			command["custom"](instance, True, new_value, False, False)
 		else:
 			new_value = self._check_and_save_value(instance, command, None, new_value)
 			if new_value is not None:
@@ -568,7 +568,7 @@ class Plugin(object):
 
 	def _verify_device_command(self, instance, command, device, new_value, ignore_missing):
 		if command["custom"] is not None:
-			return command["custom"](True, new_value, device, True, ignore_missing)
+			return command["custom"](instance, True, new_value, device, True, ignore_missing)
 		current_value = self._get_current_value(command, device, ignore_missing=ignore_missing)
 		new_value = self._process_assignment_modifiers(new_value, current_value)
 		if new_value is None:
@@ -578,7 +578,7 @@ class Plugin(object):
 
 	def _verify_non_device_command(self, instance, command, new_value, ignore_missing):
 		if command["custom"] is not None:
-			return command["custom"](True, new_value, True, ignore_missing)
+			return command["custom"](instance, True, new_value, True, ignore_missing)
 		current_value = self._get_current_value(command)
 		new_value = self._process_assignment_modifiers(new_value, current_value)
 		if new_value is None:
@@ -599,7 +599,7 @@ class Plugin(object):
 
 	def _cleanup_device_command(self, instance, command, device):
 		if command["custom"] is not None:
-			command["custom"](False, None, device, False, False)
+			command["custom"](instance, False, None, device, False, False)
 		else:
 			old_value = self._storage_get(instance, command, device)
 			if old_value is not None:
@@ -608,7 +608,7 @@ class Plugin(object):
 
 	def _cleanup_non_device_command(self, instance, command):
 		if command["custom"] is not None:
-			command["custom"](False, None, False, False)
+			command["custom"](instance, False, None, False, False)
 		else:
 			old_value = self._storage_get(instance, command)
 			if old_value is not None:
