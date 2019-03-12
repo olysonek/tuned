@@ -13,3 +13,6 @@ class Storage(object):
 
 	def unset(self, option):
 		self._storage_provider.unset(self._namespace, option)
+
+	def save(self):
+		self._storage_provider.save()
