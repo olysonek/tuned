@@ -73,10 +73,8 @@ class SchedulerPlugin(base.Plugin):
 		self._ps_whitelist = ".*"
 		self._ps_blacklist = ""
 		self._cpus = perf.cpu_map()
-		self._scheduler_storage_key = self._storage_key(
-				command_name = "scheduler")
-		self._irq_storage_key = self._storage_key(
-				command_name = "irq")
+		self._scheduler_storage_namespace = "scheduler"
+		self._irq_storage_namespace = "irq"
 
 	def _instance_init(self, instance):
 		instance._has_dynamic_tuning = False
@@ -88,13 +86,13 @@ class SchedulerPlugin(base.Plugin):
 
 		# FIXME: do we want to do this here?
 		# recover original values in case of crash
-		self._scheduler_original = self._storage.get(
-				self._scheduler_storage_key, {})
+		self._scheduler_original = self._storage_get(instance,
+				self._scheduler_storage_namespace)
 		if len(self._scheduler_original) > 0:
 			log.info("recovering scheduling settings from previous run")
-			self._restore_ps_affinity()
+			self._restore_ps_affinity(instance)
 			self._scheduler_original = {}
-			self._storage.unset(self._scheduler_storage_key)
+			self._storage_unset(instance, self._scheduler_storage_namespace)
 
 		instance._scheduler = instance.options
 		for k in instance._scheduler:
@@ -384,13 +382,13 @@ class SchedulerPlugin(base.Plugin):
 				in sched_all.items():
 			self._tune_process(pid, cmd, scheduler,
 					priority, affinity)
-		self._storage.set(self._scheduler_storage_key,
+		self._storage_set(instance, self._scheduler_storage_namespace,
 				self._scheduler_original)
 		if self._daemon and instance._runtime_tuning:
 			instance._thread = threading.Thread(target = self._thread_code, args = [instance])
 			instance._thread.start()
 
-	def _restore_ps_affinity(self):
+	def _restore_ps_affinity(self, instance):
 		try:
 			ps = self.get_processes()
 		except (OSError, IOError) as e:
@@ -408,14 +406,14 @@ class SchedulerPlugin(base.Plugin):
 			if orig_params.affinity is not None:
 				self._set_affinity(pid, orig_params.affinity)
 		self._scheduler_original = {}
-		self._storage.unset(self._scheduler_storage_key)
+		self._storage_unset(instance, self._scheduler_storage_namespace)
 
 	def _instance_unapply_static(self, instance, full_rollback = False):
 		super(SchedulerPlugin, self)._instance_unapply_static(instance, full_rollback)
 		if self._daemon and instance._runtime_tuning:
 			instance._terminate.set()
 			instance._thread.join()
-		self._restore_ps_affinity()
+		self._restore_ps_affinity(instance)
 
 	def _add_pid(self, instance, pid, r):
 		try:
@@ -435,14 +433,16 @@ class SchedulerPlugin(base.Plugin):
 			(sched, prio, affinity) = v
 			self._tune_process(pid, cmd, sched, prio,
 					affinity)
-			self._storage.set(self._scheduler_storage_key,
+			self._storage_set(instance,
+					self._scheduler_storage_namespace,
 					self._scheduler_original)
 
 	def _remove_pid(self, instance, pid):
 		if pid in self._scheduler_original:
 			del self._scheduler_original[pid]
 			log.debug("removed PID %d from the rollback database" % pid)
-			self._storage.set(self._scheduler_storage_key,
+			self._storage_set(instance,
+					self._scheduler_storage_namespace,
 					self._scheduler_original)
 
 	def _thread_code(self, instance):
@@ -599,7 +599,7 @@ class SchedulerPlugin(base.Plugin):
 			log.error("Failed to set default SMP IRQ affinity to '%s': %s"
 					% (affinity_hex, e))
 
-	def _set_all_irq_affinity(self, affinity):
+	def _set_all_irq_affinity(self, instance, affinity):
 		irq_original = IRQAffinities()
 		irqs = procfs.interrupts()
 		for irq in irqs.keys():
@@ -621,17 +621,19 @@ class SchedulerPlugin(base.Plugin):
 		_affinity = self._get_intersect_affinity(prev_affinity, affinity, affinity)
 		self._set_default_irq_affinity(_affinity)
 		irq_original.default = prev_affinity
-		self._storage.set(self._irq_storage_key, irq_original)
+		self._storage_set(instance, self._irq_storage_namespace,
+				irq_original)
 
-	def _restore_all_irq_affinity(self):
-		irq_original = self._storage.get(self._irq_storage_key, None)
-		if irq_original is None:
+	def _restore_all_irq_affinity(self, instance):
+		irq_original = self._storage_get(instance,
+				self._irq_storage_namespace)
+		if len(irq_original) == 0:
 			return
 		for irq, affinity in irq_original.irqs.items():
 			self._set_irq_affinity(irq, affinity, True)
 		affinity = irq_original.default
 		self._set_default_irq_affinity(affinity)
-		self._storage.unset(self._irq_storage_key)
+		self._storage_unset(instance, self._irq_storage_namespace)
 
 	def _verify_irq_affinity(self, irq_description, correct_affinity,
 			current_affinity):
@@ -689,8 +691,8 @@ class SchedulerPlugin(base.Plugin):
 			return self._verify_all_irq_affinity(affinity)
 		elif enabling:
 			self._set_ps_affinity(affinity)
-			self._set_all_irq_affinity(affinity)
+			self._set_all_irq_affinity(instance, affinity)
 		else:
 			# Restoring processes' affinity is done in
 			# _instance_unapply_static()
-			self._restore_all_irq_affinity()
+			self._restore_all_irq_affinity(instance)

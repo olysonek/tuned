@@ -26,6 +26,7 @@ class SysctlPlugin(base.Plugin):
 		super(SysctlPlugin, self).__init__(*args, **kwargs)
 		self._has_dynamic_options = True
 		self._cmd = commands()
+		self._storage_namespace = "sysctl"
 
 	def _instance_init(self, instance):
 		instance._has_dynamic_tuning = False
@@ -33,19 +34,18 @@ class SysctlPlugin(base.Plugin):
 
 		# FIXME: do we want to do this here?
 		# recover original values in case of crash
-		storage_key = self._storage_key(instance.name)
-		instance._sysctl_original = self._storage.get(storage_key, {})
+		instance._sysctl_original = self._storage_get(instance,
+				self._storage_namespace)
 		if len(instance._sysctl_original) > 0:
 			log.info("recovering old sysctl settings from previous run")
 			self._instance_unapply_static(instance)
 			instance._sysctl_original = {}
-			self._storage.unset(storage_key)
+			self._storage_unset(instance, self._storage_namespace)
 
 		instance._sysctl = instance.options
 
 	def _instance_cleanup(self, instance):
-		storage_key = self._storage_key(instance.name)
-		self._storage.unset(storage_key)
+		self._storage_unset(instance, self._storage_namespace)
 
 	def _instance_apply_static(self, instance):
 		for option, value in list(instance._sysctl.items()):
@@ -61,8 +61,8 @@ class SysctlPlugin(base.Plugin):
 						new_value, original_value)
 				_write_sysctl(option, new_value)
 
-		storage_key = self._storage_key(instance.name)
-		self._storage.set(storage_key, instance._sysctl_original)
+		self._storage_set(instance, self._storage_namespace,
+				instance._sysctl_original)
 
 		if self._global_cfg.get_bool(consts.CFG_REAPPLY_SYSCTL, consts.CFG_DEF_REAPPLY_SYSCTL):
 			log.info("reapplying system sysctl")

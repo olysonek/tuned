@@ -371,10 +371,8 @@ class NetTuningPlugin(base.Plugin):
 			self._cmd.execute(["ethtool", opt, device] + self._cmd.dict2list(d), no_errors = [80])
 		return d
 
-	def _custom_parameters(self, context, start, value, device, verify):
-		storage_key = self._storage_key(
-				command_name = context,
-				device_name = device)
+	def _custom_parameters(self, instance, context, start, value, device,
+			verify):
 		if start:
 			params_current = self._get_device_parameters(context,
 					device)
@@ -398,10 +396,12 @@ class NetTuningPlugin(base.Plugin):
 						device = device)
 				return res
 			# saved are only those parameters which passed checks
-			self._storage.set(storage_key, " ".join(
-					self._cmd.dict2list(relevant_params_current)))
+			self._storage_set(instance, context, " ".join(
+					self._cmd.dict2list(relevant_params_current)),
+					device_name = device)
 		else:
-			original_value = self._storage.get(storage_key)
+			original_value = self._storage_get(instance, context,
+					device_name = device)
 			# in storage are only those parameters which were already tested
 			# so skip check for supported parameters
 			self._set_device_parameters(context, original_value, device, False)
@@ -409,16 +409,20 @@ class NetTuningPlugin(base.Plugin):
 
 	@command_custom("features", per_device = True)
 	def _features(self, instance, start, value, device, verify, ignore_missing):
-		return self._custom_parameters("features", start, value, device, verify)
+		return self._custom_parameters(instance, "features", start,
+				value, device, verify)
 
 	@command_custom("coalesce", per_device = True)
 	def _coalesce(self, instance, start, value, device, verify, ignore_missing):
-		return self._custom_parameters("coalesce", start, value, device, verify)
+		return self._custom_parameters(instance, "coalesce", start,
+				value, device, verify)
 
 	@command_custom("pause", per_device = True)
 	def _pause(self, instance, start, value, device, verify, ignore_missing):
-		return self._custom_parameters("pause", start, value, device, verify)
+		return self._custom_parameters(instance, "pause", start,
+				value, device, verify)
 
 	@command_custom("ring", per_device = True)
 	def _ring(self, instance, start, value, device, verify, ignore_missing):
-		return self._custom_parameters("ring", start, value, device, verify)
+		return self._custom_parameters(instance, "ring", start,
+				value, device, verify)

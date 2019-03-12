@@ -322,22 +322,23 @@ class DiskPlugin(hotplug.Plugin):
 	def _multiply_readahead(self, instance, enabling, multiplier, device, verify, ignore_missing):
 		if verify:
 			return None
-		storage_key = self._storage_key(
-				command_name = "readahead_multiply",
-				device_name = device)
+		command_name = "readahead_multiply"
 		if enabling:
 			old_readahead = self._get_readahead(device)
 			if old_readahead is None:
 				return
 			new_readahead = int(float(multiplier) * old_readahead)
-			self._storage.set(storage_key, old_readahead)
+			self._storage_set(instance, command_name,
+					old_readahead, device_name=device)
 			self._set_readahead(new_readahead, device, False)
 		else:
-			old_readahead = self._storage.get(storage_key)
+			old_readahead = self._storage_get(instance,
+					command_name, device_name=device)
 			if old_readahead is None:
 				return
 			self._set_readahead(old_readahead, device, False)
-			self._storage.unset(storage_key)
+			self._storage.unset(instance, command_name,
+					device_name=device)
 
 	def _scheduler_quantum_file(self, device):
 		return self._sysfs_path(device, "queue/iosched/quantum")

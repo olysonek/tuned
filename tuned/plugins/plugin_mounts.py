@@ -125,9 +125,7 @@ class MountsPlugin(base.Plugin):
 
 	@command_custom("disable_barriers", per_device=True)
 	def _disable_barriers(self, instance, start, value, mountpoint, verify, ignore_missing):
-		storage_key = self._storage_key(
-				command_name = "disable_barriers",
-				device_name = mountpoint)
+		command_name = "disable_barriers"
 		force = str(value).lower() == "force"
 		value = force or self._option_bool(value)
 
@@ -159,18 +157,21 @@ class MountsPlugin(base.Plugin):
 				log.info("not disabling barriers on '%s' (%s)" % (mountpoint, reject_reason))
 				return None
 
-			self._storage.set(storage_key, original_value)
+			self._storage_set(instance, command_name,
+					original_value, device_name=mountpoint)
 			log.info("disabling barriers on '%s'" % mountpoint)
 			self._remount_partition(mountpoint, "barrier=0")
 
 		else:
 			if verify:
 				return None
-			original_value = self._storage.get(storage_key)
+			original_value = self._storage_get(instance,
+					command_name, device_name=mountpoint)
 			if original_value is None:
 				return None
 
 			log.info("enabling barriers on '%s'" % mountpoint)
 			self._remount_partition(mountpoint, "barrier=1")
-			self._storage.unset(storage_key)
+			self._storage_unset(instance, command_name,
+					device_name=mountpoint)
 		return None
