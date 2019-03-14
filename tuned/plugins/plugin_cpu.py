@@ -31,9 +31,6 @@ class CPULatencyPlugin(base.Plugin):
 		self._has_energy_perf_bias = False
 		self._has_intel_pstate = False
 
-		self._min_perf_pct_save = None
-		self._max_perf_pct_save = None
-		self._no_turbo_save = None
 		self._governors_map = {}
 		self._cmd = commands()
 
@@ -181,17 +178,21 @@ class CPULatencyPlugin(base.Plugin):
 		if force_latency_value is not None:
 			self._set_latency(force_latency_value)
 		if self._has_intel_pstate:
-			self._min_perf_pct_save = self._getset_intel_pstate_attr("min_perf_pct", instance.options["min_perf_pct"])
-			self._max_perf_pct_save = self._getset_intel_pstate_attr("max_perf_pct", instance.options["max_perf_pct"])
-			self._no_turbo_save = self._getset_intel_pstate_attr("no_turbo", instance.options["no_turbo"])
+			attrs = ["min_perf_pct", "max_perf_pct", "no_turbo"]
+			for attr in attrs:
+				new_value = instance.options["min_perf_pct"]
+				orig_value = self._getset_intel_pstate_attr(
+						attr, new_value)
+				self._store_command_orig(attr, orig_value)
 
 	def _instance_unapply_static(self, instance, full_rollback = False):
 		super(CPULatencyPlugin, self)._instance_unapply_static(instance, full_rollback)
 
 		if instance._first_instance and self._has_intel_pstate:
-			self._set_intel_pstate_attr("min_perf_pct", self._min_perf_pct_save)
-			self._set_intel_pstate_attr("max_perf_pct", self._max_perf_pct_save)
-			self._set_intel_pstate_attr("no_turbo", self._no_turbo_save)
+			attrs = ["min_perf_pct", "max_perf_pct", "no_turbo"]
+			for attr in attrs:
+				orig_value = self._get_command_orig(attr)
+				self._set_intel_pstate_attr(attr, orig_value)
 
 	def _instance_apply_dynamic(self, instance, device):
 		self._instance_update_dynamic(instance, device)
