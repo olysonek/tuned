@@ -176,11 +176,16 @@ class CPULatencyPlugin(base.Plugin):
 
 		force_latency_value = instance.options["force_latency"]
 		if force_latency_value is not None:
+			self._store_command_applied("force_latency",
+					force_latency_value)
 			self._set_latency(force_latency_value)
 		if self._has_intel_pstate:
 			attrs = ["min_perf_pct", "max_perf_pct", "no_turbo"]
 			for attr in attrs:
 				new_value = instance.options["min_perf_pct"]
+				if new_value is None:
+					continue
+				self._store_command_applied(attr, new_value)
 				orig_value = self._getset_intel_pstate_attr(
 						attr, new_value)
 				self._store_command_orig(attr, orig_value)
