@@ -15,7 +15,7 @@ class Manager(object):
 	"""
 
 	def __init__(self, plugins_repository, monitors_repository,
-			def_instance_priority, hardware_inventory):
+			def_instance_priority, hardware_inventory, global_cfg):
 		super(Manager, self).__init__()
 		self._plugins_repository = plugins_repository
 		self._monitors_repository = monitors_repository
@@ -23,6 +23,9 @@ class Manager(object):
 		self._hardware_inventory = hardware_inventory
 		self._instances = []
 		self._plugins = []
+		self._daemon_mode = consts.CFG_DEF_DAEMON
+		if global_cfg is not None:
+			self._daemon_mode = global_cfg.get_bool(consts.CFG_DAEMON, consts.CFG_DEF_DAEMON)
 
 	@property
 	def plugins(self):
@@ -80,7 +83,8 @@ class Manager(object):
 			instance.plugin.initialize_instance(instance)
 		# At this point we should be able to start the HW events
 		# monitoring/processing thread, without risking race conditions
-		self._hardware_inventory.start_processing_events()
+		if self._daemon_mode:
+			self._hardware_inventory.start_processing_events()
 		self._instances.extend(instances)
 
 	def _try_call(self, caller, exc_ret, f, *args, **kwargs):
@@ -139,7 +143,8 @@ class Manager(object):
 	# it means to remove all temporal or helper files, unpatch third
 	# party config files, etc.
 	def stop_tuning(self, full_rollback = False):
-		self._hardware_inventory.stop_processing_events()
+		if self._daemon_mode:
+			self._hardware_inventory.stop_processing_events()
 		for instance in reversed(self._instances):
 			self._try_call("stop_tuning", None,
 					instance.unapply_tuning, full_rollback)
