@@ -17,6 +17,7 @@ SYSCTL_CONFIG_DIRS = [ "/run/sysctl.d",
 		"/usr/lib/sysctl.d",
 		"/lib/sysctl.d" ]
 
+# TODO Store original settings
 class SysctlPlugin(base.Plugin):
 	"""
 	Plugin for applying custom sysctl options.

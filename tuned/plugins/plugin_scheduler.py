@@ -62,6 +62,7 @@ class IRQAffinities(object):
 		self.irqs = {}
 		self.default = None
 
+# TODO Store original settings
 class SchedulerPlugin(base.Plugin):
 	"""
 	Plugin for tuning of scheduler. Currently it can control scheduling
