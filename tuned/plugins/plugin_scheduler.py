@@ -474,6 +474,11 @@ class SchedulerPlugin(base.Plugin):
 		if verify:
 			return None
 		if enabling and value is not None:
+			self._store_command_applied(instance, "ps_whitelist",
+					str(value))
+			# FIXME Setting this variable should probably happen
+			# somewhere else, so that it's set even during oneshot
+			# rollback. Fortunatelly, it's not needed during rollback.
 			self._ps_whitelist = "|".join(["(%s)" % v for v in re.split(r"(?<!\\);", str(value))])
 
 	@command_custom("ps_blacklist", per_device = False)
@@ -482,6 +487,11 @@ class SchedulerPlugin(base.Plugin):
 		if verify:
 			return None
 		if enabling and value is not None:
+			self._store_command_applied(instance, "ps_blacklist",
+					str(value))
+			# FIXME Setting this variable should probably happen
+			# somewhere else, so that it's set even during oneshot
+			# rollback. Fortunatelly, it's not needed during rollback.
 			self._ps_blacklist = "|".join(["(%s)" % v for v in re.split(r"(?<!\\);", str(value))])
 
 	# Raises OSError
@@ -689,6 +699,8 @@ class SchedulerPlugin(base.Plugin):
 		if verify:
 			return self._verify_all_irq_affinity(affinity)
 		elif enabling:
+			self._store_command_applied(instance, "isolated_cores",
+					value)
 			self._set_ps_affinity(affinity)
 			self._set_all_irq_affinity(instance, affinity)
 		else:

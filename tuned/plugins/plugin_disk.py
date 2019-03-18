@@ -328,6 +328,7 @@ class DiskPlugin(hotplug.Plugin):
 			if old_readahead is None:
 				return
 			new_readahead = int(float(multiplier) * old_readahead)
+			self._store_device_command_applied(instance, command, device, new_value)
 			self._storage_set(instance, command_name,
 					old_readahead, device_name=device)
 			self._set_readahead(new_readahead, device, False)

@@ -120,6 +120,8 @@ class SystemdPlugin(base.Plugin):
 		if verify:
 			return self._verify_value("cpu_affinity", v_unpacked, conf_affinity_unpacked, ignore_missing)
 		if enabling:
+			self._store_command_applied(instance, "cpu_affinity",
+					value, persistent = True)
 			fname = self._get_storage_filename()
 			cpu_affinity_saved = self._cmd.read_file(fname, err_ret = None, no_error = True)
 			if conf_affinity is not None and cpu_affinity_saved is None and v_unpacked != conf_affinity_unpacked:
