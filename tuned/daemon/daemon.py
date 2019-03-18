@@ -130,9 +130,16 @@ class Daemon(object):
 		retcode, out = self._cmd.execute(["systemctl", "list-jobs"], no_errors = [0])
 		return re.search(r"\b(shutdown|reboot|halt|poweroff)\.target.*start", out) is None
 
+	def _oneshot_rollback(self):
+		units = { "bootloader": { "foo": {} },
+		          "disk": { "disk_a"
+
 	def _thread_code(self):
 		if self._profile is None:
 			raise TunedException("Cannot start the daemon without setting a profile.")
+
+		if not self._daemon:
+			self._oneshot_rollback()
 
 		self._unit_manager.create(self._profile.units)
 		self._save_active_profile(self._profile.name, self._manual)
