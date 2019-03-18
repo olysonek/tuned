@@ -259,6 +259,9 @@ class Plugin(object):
 			return
 
 		if instance.has_static_tuning:
+			self._store_devices(instance)
+			self._store_scripts(instance)
+
 			self._call_device_script(instance, instance.script_pre,
 					"apply", instance.assigned_devices)
 			self._instance_pre_static(instance, True)
@@ -428,6 +431,23 @@ class Plugin(object):
 		key = self._storage_key(instance.name, command["name"], device_name)
 		return self._storage.unset(key)
 
+	def _store_devices(self, instance):
+		TODO
+
+	def _store_scripts(self, instance):
+		TODO
+		store_script_pre
+		store_script_post
+
+	def _store_command_applied(self, instance, command, new_value):
+		TODO
+
+	def _store_command_orig(self, instance, command, orig_value):
+		TODO
+
+	def _get_command_orig(self, instance, command):
+		TODO
+
 	#
 	# Command execution, verification, and cleanup.
 	#
@@ -436,6 +456,7 @@ class Plugin(object):
 		for command in [command for command in list(self._commands.values()) if not command["per_device"]]:
 			new_value = self._variables.expand(instance.options.get(command["name"], None))
 			if new_value is not None:
+				self._store_command_applied(instance, command, new_value)
 				self._execute_non_device_command(instance, command, new_value)
 
 	def _execute_all_device_commands(self, instance, devices):
@@ -443,6 +464,7 @@ class Plugin(object):
 			new_value = self._variables.expand(instance.options.get(command["name"], None))
 			if new_value is None:
 				continue
+			self._store_command_applied(instance, command, new_value)
 			for device in devices:
 				self._execute_device_command(instance, command, device, new_value)
 

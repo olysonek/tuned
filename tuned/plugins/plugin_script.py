@@ -55,6 +55,8 @@ class ScriptPlugin(base.Plugin):
 
 	def _instance_apply_static(self, instance):
 		super(ScriptPlugin, self)._instance_apply_static(instance)
+		self._store_command_applied(instance, "script",
+				instance._scripts)
 		self._call_scripts(instance._scripts, ["start"])
 
 	def _instance_verify_static(self, instance, ignore_missing, devices):

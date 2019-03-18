@@ -59,6 +59,7 @@ class SysctlPlugin(base.Plugin):
 						self._cmd.unquote(value))
 				new_value = self._process_assignment_modifiers(
 						new_value, original_value)
+				self._store_command_applied(instance, option, new_value)
 				_write_sysctl(option, new_value)
 
 		self._storage_set(instance, self._storage_namespace,

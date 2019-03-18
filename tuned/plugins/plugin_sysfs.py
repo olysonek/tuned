@@ -36,6 +36,7 @@ class SysfsPlugin(base.Plugin):
 			v = self._variables.expand(value)
 			for f in glob.iglob(key):
 				if self._check_sysfs(f):
+					self._store_command_applied(instance, f, v)
 					instance._sysfs_original[f] = self._read_sysfs(f)
 					self._write_sysfs(f, v)
 				else:

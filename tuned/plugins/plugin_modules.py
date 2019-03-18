@@ -48,6 +48,7 @@ class ModulesPlugin(base.Plugin):
 		for option, value in list(instance._modules.items()):
 			module = self._variables.expand(option)
 			v = self._variables.expand(value)
+			self._store_command_applied(instance, module, v)
 			if not skip_check:
 				retcode, out = self._cmd.execute(["modinfo", module])
 				if retcode < 0:

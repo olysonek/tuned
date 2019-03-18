@@ -352,6 +352,7 @@ class SchedulerPlugin(base.Plugin):
 			log.error("error applying tuning, cannot get information about running processes: %s"
 					% e)
 			return
+		# TODO store applied options
 		sched_cfg = [(option, str(value).split(":", 4)) for option, value in instance._scheduler.items()]
 		buf = [(option, self._convert_sched_cfg(vals))
 				for option, vals in sched_cfg
