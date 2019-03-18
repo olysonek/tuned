@@ -30,11 +30,28 @@ class BootloaderPlugin(base.Plugin):
 		instance._has_static_tuning = True
 		# controls grub2_cfg rewrites in _instance_post_static
 		self.update_grub2_cfg = False
-		self._initrd_remove_dir = False
-		self._initrd_dst_img_val = None
 		self._cmdline_val = ""
 		self._initrd_val = ""
+
+		self._initrd_remove_dir = False
+		if instance.options["initrd_remove_dir"] is not None:
+			value = instance.options["initrd_remove_dir"]
+			value = self._variables.expand(value)
+			self._initrd_remove_dir = self._cmd.get_bool(value) == "1"
+
+		self._initrd_dst_img_val = None
+		if instance.options["initrd_dst_img"] is not None:
+			value = instance.options["initrd_dst_img"]
+			value = self._variables.expand(value)
+			self._initrd_dst_img_val = str(value)
+			if self._initrd_dst_img_val != "" and self._initrd_dst_img_val[0] != "/":
+				self._initrd_dst_img_val = os.path.join(consts.BOOT_DIR, self._initrd_dst_img_val)
+
 		self._grub2_cfg_file_names = self._get_grub2_cfg_files()
+		if instance.options["grub2_cfg_file"] is not None:
+			value = instance.options["grub2_cfg_file"]
+			value = self._variables.expand(value)
+			self._grub2_cfg_file_names = [str(value)]
 
 	def _instance_cleanup(self, instance):
 		pass
@@ -243,34 +260,6 @@ class BootloaderPlugin(base.Plugin):
 				initrd_grubpath = path
 		self._initrd_val = os.path.join(initrd_grubpath, img_name)
 		return True
-
-	@command_custom("grub2_cfg_file")
-	def _grub2_cfg_file(self, instance, enabling, value, verify, ignore_missing):
-		# nothing to verify
-		if verify:
-			return None
-		if enabling and value is not None:
-			self._grub2_cfg_file_names = [str(value)]
-
-	@command_custom("initrd_dst_img")
-	def _initrd_dst_img(self, instance, enabling, value, verify, ignore_missing):
-		# nothing to verify
-		if verify:
-			return None
-		if enabling and value is not None:
-			self._initrd_dst_img_val = str(value)
-			if self._initrd_dst_img_val == "":
-				return False
-			if self._initrd_dst_img_val[0] != "/":
-				self._initrd_dst_img_val = os.path.join(consts.BOOT_DIR, self._initrd_dst_img_val)
-
-	@command_custom("initrd_remove_dir")
-	def _initrd_remove_dir(self, instance, enabling, value, verify, ignore_missing):
-		# nothing to verify
-		if verify:
-			return None
-		if enabling and value is not None:
-			self._initrd_remove_dir = self._cmd.get_bool(value) == "1"
 
 	@command_custom("initrd_add_img", per_device = False, priority = 10)
 	def _initrd_add_img(self, instance, enabling, value, verify, ignore_missing):
