@@ -84,12 +84,12 @@ class SchedulerPlugin(base.Plugin):
 
 		# FIXME: do we want to do this here?
 		# recover original values in case of crash
-		self._scheduler_original = self._storage_get(instance,
+		instance._scheduler_original = self._storage_get(instance,
 				self._scheduler_storage_namespace)
-		if len(self._scheduler_original) > 0:
+		if len(instance._scheduler_original) > 0:
 			log.info("recovering scheduling settings from previous run")
 			self._restore_ps_affinity(instance)
-			self._scheduler_original = {}
+			instance._scheduler_original = {}
 			self._storage_unset(instance, self._scheduler_storage_namespace)
 
 		instance._scheduler = instance.options
@@ -235,17 +235,17 @@ class SchedulerPlugin(base.Plugin):
 					% (pid, e))
 			return -2
 
-	def _store_orig_process_rt(self, pid, scheduler, priority):
+	def _store_orig_process_rt(self, instance, pid, scheduler, priority):
 		try:
-			params = self._scheduler_original[pid]
+			params = instance._scheduler_original[pid]
 		except KeyError:
 			params = SchedulerParams(self._cmd)
-			self._scheduler_original[pid] = params
+			instance._scheduler_original[pid] = params
 		if params.scheduler is None and params.priority is None:
 			params.scheduler = scheduler
 			params.priority = priority
 
-	def _tune_process_rt(self, pid, sched, prio):
+	def _tune_process_rt(self, instance, pid, sched, prio):
 		cont = True
 		if sched is None and prio is None:
 			return cont
@@ -254,29 +254,29 @@ class SchedulerPlugin(base.Plugin):
 			if sched is None:
 				sched = prev_sched
 			self._set_rt(pid, sched, prio)
-			self._store_orig_process_rt(pid, prev_sched, prev_prio)
+			self._store_orig_process_rt(instance, pid, prev_sched, prev_prio)
 		except (SystemError, OSError) as e:
 			if hasattr(e, "errno") and e.errno == errno.ESRCH:
 				log.debug("Failed to read scheduler policy of PID %d, the task vanished."
 						% pid)
-				if pid in self._scheduler_original:
-					del self._scheduler_original[pid]
+				if pid in instance._scheduler_original:
+					del instance._scheduler_original[pid]
 				cont = False
 			else:
 				log.error("Refusing to set scheduler and priority of PID %d, reading original scheduling parameters failed: %s"
 						% (pid, e))
 		return cont
 
-	def _store_orig_process_affinity(self, pid, affinity):
+	def _store_orig_process_affinity(self, instance, pid, affinity):
 		try:
-			params = self._scheduler_original[pid]
+			params = instance._scheduler_original[pid]
 		except KeyError:
 			params = SchedulerParams(self._cmd)
-			self._scheduler_original[pid] = params
+			instance._scheduler_original[pid] = params
 		if params.affinity is None:
 			params.affinity = affinity
 
-	def _tune_process_affinity(self, pid, affinity, intersect = False):
+	def _tune_process_affinity(self, instance, pid, affinity, intersect = False):
 		cont = True
 		if affinity is None:
 			return cont
@@ -287,14 +287,14 @@ class SchedulerPlugin(base.Plugin):
 						prev_affinity, affinity,
 						affinity)
 			self._set_affinity(pid, affinity)
-			self._store_orig_process_affinity(pid,
+			self._store_orig_process_affinity(instance, pid,
 					prev_affinity)
 		except (SystemError, OSError) as e:
 			if hasattr(e, "errno") and e.errno == errno.ESRCH:
 				log.debug("Failed to read affinity of PID %d, the task vanished."
 						% pid)
-				if pid in self._scheduler_original:
-					del self._scheduler_original[pid]
+				if pid in instance._scheduler_original:
+					del instance._scheduler_original[pid]
 				cont = False
 			else:
 				log.error("Refusing to set CPU affinity of PID %d, reading original affinity failed: %s"
@@ -302,14 +302,14 @@ class SchedulerPlugin(base.Plugin):
 		return cont
 
 	#tune process and store previous values
-	def _tune_process(self, pid, cmd, sched, prio, affinity):
-		cont = self._tune_process_rt(pid, sched, prio)
+	def _tune_process(self, instance, pid, cmd, sched, prio, affinity):
+		cont = self._tune_process_rt(instance, pid, sched, prio)
 		if not cont:
 			return
-		cont = self._tune_process_affinity(pid, affinity)
-		if not cont or pid not in self._scheduler_original:
+		cont = self._tune_process_affinity(instance, pid, affinity)
+		if not cont or pid not in instance._scheduler_original:
 			return
-		self._scheduler_original[pid].cmdline = cmd
+		instance._scheduler_original[pid].cmdline = cmd
 
 	def _convert_sched_params(self, str_scheduler, str_priority):
 		scheduler = self._dict_schedcfg2num.get(str_scheduler)
@@ -379,10 +379,10 @@ class SchedulerPlugin(base.Plugin):
 			instance._sched_lookup[regex] = [scheduler, priority, affinity]
 		for pid, (cmd, option, scheduler, priority, affinity, regex) \
 				in sched_all.items():
-			self._tune_process(pid, cmd, scheduler,
+			self._tune_process(instance, pid, cmd, scheduler,
 					priority, affinity)
 		self._storage_set(instance, self._scheduler_storage_namespace,
-				self._scheduler_original)
+				instance._scheduler_original)
 		if self._daemon and instance._runtime_tuning:
 			instance._thread = threading.Thread(target = self._thread_code, args = [instance])
 			instance._thread.start()
@@ -394,7 +394,7 @@ class SchedulerPlugin(base.Plugin):
 			log.error("error unapplying tuning, cannot get information about running processes: %s"
 					% e)
 			return
-		for pid, orig_params in self._scheduler_original.items():
+		for pid, orig_params in instance._scheduler_original.items():
 			# if command line for the pid didn't change, it's very probably the same process
 			if pid not in ps or ps[pid] != orig_params.cmdline:
 				continue
@@ -404,7 +404,7 @@ class SchedulerPlugin(base.Plugin):
 						orig_params.priority)
 			if orig_params.affinity is not None:
 				self._set_affinity(pid, orig_params.affinity)
-		self._scheduler_original = {}
+		instance._scheduler_original = {}
 		self._storage_unset(instance, self._scheduler_storage_namespace)
 
 	def _instance_unapply_static(self, instance, full_rollback = False):
@@ -427,22 +427,22 @@ class SchedulerPlugin(base.Plugin):
 						% (pid, e))
 			return
 		v = self._cmd.re_lookup(instance._sched_lookup, cmd, r)
-		if v is not None and not pid in self._scheduler_original:
+		if v is not None and not pid in instance._scheduler_original:
 			log.debug("tuning new process '%s' with PID '%d' by '%s'" % (cmd, pid, str(v)))
 			(sched, prio, affinity) = v
-			self._tune_process(pid, cmd, sched, prio,
+			self._tune_process(instance, pid, cmd, sched, prio,
 					affinity)
 			self._storage_set(instance,
 					self._scheduler_storage_namespace,
-					self._scheduler_original)
+					instance._scheduler_original)
 
 	def _remove_pid(self, instance, pid):
-		if pid in self._scheduler_original:
-			del self._scheduler_original[pid]
+		if pid in instance._scheduler_original:
+			del instance._scheduler_original[pid]
 			log.debug("removed PID %d from the rollback database" % pid)
 			self._storage_set(instance,
 					self._scheduler_storage_namespace,
-					self._scheduler_original)
+					instance._scheduler_original)
 
 	def _thread_code(self, instance):
 		r = self._cmd.re_lookup_compile(instance._sched_lookup)
@@ -528,7 +528,7 @@ class SchedulerPlugin(base.Plugin):
 			return list(aff)
 		return affinity3
 
-	def _set_all_obj_affinity(self, objs, affinity, threads = False):
+	def _set_all_obj_affinity(self, instance, objs, affinity, threads = False):
 		psl = [v for v in objs if re.search(self._ps_whitelist,
 				self._get_stat_comm(v)) is not None]
 		if self._ps_blacklist != "":
@@ -547,15 +547,15 @@ class SchedulerPlugin(base.Plugin):
 					log.error("Refusing to set affinity of PID %d, failed to get its cmdline: %s"
 							% (pid, e))
 				continue
-			cont = self._tune_process_affinity(pid, affinity,
+			cont = self._tune_process_affinity(instance, pid, affinity,
 					intersect = True)
 			if not cont:
 				continue
-			if pid in self._scheduler_original:
-				self._scheduler_original[pid].cmdline = cmd
+			if pid in instance._scheduler_original:
+				instance._scheduler_original[pid].cmdline = cmd
 			# process threads
 			if not threads and "threads" in psd[pid]:
-				self._set_all_obj_affinity(
+				self._set_all_obj_affinity(instance,
 						psd[pid]["threads"].values(),
 						affinity, True)
 
@@ -565,11 +565,12 @@ class SchedulerPlugin(base.Plugin):
 		except (OSError, IOError, KeyError):
 			return ""
 
-	def _set_ps_affinity(self, affinity):
+	def _set_ps_affinity(self, instance, affinity):
 		try:
 			ps = procfs.pidstats()
 			ps.reload_threads()
-			self._set_all_obj_affinity(ps.values(), affinity, False)
+			self._set_all_obj_affinity(instance,
+					ps.values(), affinity, False)
 		except (OSError, IOError) as e:
 			log.error("error applying tuning, cannot get information about running processes: %s"
 					% e)
@@ -701,7 +702,7 @@ class SchedulerPlugin(base.Plugin):
 		elif enabling:
 			self._store_command_applied(instance, "isolated_cores",
 					value)
-			self._set_ps_affinity(affinity)
+			self._set_ps_affinity(instance, affinity)
 			self._set_all_irq_affinity(instance, affinity)
 		else:
 			# Restoring processes' affinity is done in
