@@ -188,7 +188,7 @@ class CPULatencyPlugin(base.Plugin):
 				self._store_command_applied(attr, new_value)
 				orig_value = self._getset_intel_pstate_attr(
 						attr, new_value)
-				self._store_command_orig(attr, orig_value)
+				self._store_command_orig(instance, attr, orig_value)
 
 	def _instance_unapply_static(self, instance, full_rollback = False):
 		super(CPULatencyPlugin, self)._instance_unapply_static(instance, full_rollback)

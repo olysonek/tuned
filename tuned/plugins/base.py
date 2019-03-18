@@ -440,14 +440,13 @@ class Plugin(object):
 		store_script_post
 
 	# Store a command that has been applied. new_value contains an expanded value.
-	def _store_command_applied(self, instance, command, new_value, persistent = False):
+	def _store_command_applied(self, instance, command, new_value,
+			device = None, persistent = False):
 		TODO
 
-	# Store a command that has been applied to a device. new_value contains an expanded value.
-	def _store_device_command_applied(self, instance, command, device, new_value):
-		TODO
-
-	def _store_command_orig(self, instance, command, orig_value):
+	# Store the original value of a setting
+	def _store_command_orig(self, instance, command, orig_value,
+			device = None, persistent = False):
 		TODO
 
 	def _get_command_orig(self, instance, command):
@@ -525,7 +524,8 @@ class Plugin(object):
 		current_value = self._get_current_value(command, device)
 		new_value = self._process_assignment_modifiers(new_value, current_value)
 		if new_value is not None and current_value is not None:
-			self._storage_set(instance, command, current_value, device)
+			self._store_command_orig(instance, command,
+					current_value, device = device)
 		return new_value
 
 	def _execute_device_command(self, instance, command, device, new_value):
