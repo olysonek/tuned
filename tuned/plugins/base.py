@@ -37,6 +37,10 @@ class Plugin(object):
 		self._has_dynamic_options = False
 		self._devices_inited = False
 
+		self._daemon = consts.CFG_DEF_DAEMON
+		if global_cfg is not None:
+			self._daemon = global_cfg.get_bool(consts.CFG_DAEMON, consts.CFG_DEF_DAEMON)
+
 		self._options_used_by_dynamic = self._get_config_options_used_by_dynamic()
 
 		self._cmd = commands()

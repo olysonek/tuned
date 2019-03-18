@@ -14,7 +14,8 @@ class Plugin(base.Plugin):
 
 	def cleanup(self):
 		super(Plugin, self).cleanup()
-		self._hardware_events_cleanup()
+		if self._daemon:
+			self._hardware_events_cleanup()
 
 	def _hardware_events_init(self):
 		raise NotImplementedError()
@@ -23,7 +24,8 @@ class Plugin(base.Plugin):
 		raise NotImplementedError()
 
 	def _init_devices(self):
-		self._hardware_events_init()
+		if self._daemon:
+			self._hardware_events_init()
 
 	def _hardware_events_callback(self, event, device):
 		if event == "add":
