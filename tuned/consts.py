@@ -11,9 +11,9 @@ DBUS_BUS = NAMESPACE
 DBUS_INTERFACE = "com.redhat.tuned.control"
 DBUS_OBJECT = "/Tuned"
 DEFAULT_PROFILE = "balanced"
-DEFAULT_STORAGE_FILE = "/run/tuned/save.pickle"
 LOAD_DIRECTORIES = ["/usr/lib/tuned", "/etc/tuned"]
 PERSISTENT_STORAGE_DIR = "/var/lib/tuned"
+RUNTIME_STORAGE_DIR = "/run/tuned"
 PLUGIN_MAIN_UNIT_NAME = "main"
 RECOMMEND_DIRECTORIES = ["/usr/lib/tuned/recommend.d", "/etc/tuned/recommend.d"]
 
