@@ -120,6 +120,24 @@ class BootloaderPlugin(base.Plugin):
 			log.info("removing initrd image '%s'" % self._initrd_dst_img_val)
 			self._cmd.unlink(self._initrd_dst_img_val)
 
+	def _instance_apply_static(self, instance):
+		if instance.options["initrd_remove_dir"] is not None:
+			self._store_command_applied(instance, "initrd_remove_dir",
+					"1" if self._initrd_remove_dir else "0",
+					persistent = True)
+
+		if instance.options["initrd_dst_img"] is not None:
+			self._store_command_applied(instance, "initrd_dst_img",
+					self._initrd_dst_img_val,
+					persistent = True)
+
+		if instance.options["grub2_cfg_file"] is not None:
+			self._store_command_applied(instance, "grub2_cfg_file",
+					self._grub2_cfg_file_names[0],
+					persistent = True)
+
+		super(BootloaderPlugin, self)._instance_apply_static(instance)
+
 	def _instance_unapply_static(self, instance, full_rollback = False):
 		if full_rollback:
 			log.info("removing grub2 tuning previously added by Tuned")
@@ -268,6 +286,8 @@ class BootloaderPlugin(base.Plugin):
 			return None
 		if enabling and value is not None:
 			src_img = str(value)
+			self._store_command_applied(instance, "initrd_add_img",
+					src_img, persistent = True)
 			self._init_initrd_dst_img(src_img)
 			if src_img == "":
 				return False
@@ -281,6 +301,8 @@ class BootloaderPlugin(base.Plugin):
 			return None
 		if enabling and value is not None:
 			src_dir = str(value)
+			self._store_command_applied(instance, "initrd_add_dir",
+					src_dir, persistent = True)
 			self._init_initrd_dst_img(src_dir)
 			if src_dir == "":
 				return False
@@ -321,6 +343,8 @@ class BootloaderPlugin(base.Plugin):
 				log.error(consts.STR_VERIFY_PROFILE_VALUE_FAIL % ("cmdline", str(cmdline_intersect), str(value_set)))
 				return False
 		if enabling and value is not None:
+			self._store_command_applied(instance, "cmdline",
+					v, persistent = True)
 			log.info("installing additional boot command line parameters to grub2")
 			self.update_grub2_cfg = True
 			self._cmdline_val = v
