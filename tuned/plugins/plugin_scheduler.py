@@ -27,6 +27,22 @@ class SchedulerParams(object):
 		self.priority = priority
 		self.affinity = affinity
 
+	def to_dict(self):
+		return {
+			"cmdline": self.cmdline,
+			"scheduler": self.scheduler,
+			"priority": self.priority,
+			"affinity": self._affinity,
+		}
+
+	def from_dict(self, cmd, d):
+		ret = SchedulerParams(cmd,
+				d.get("cmdline"),
+				d.get("scheduler"),
+				d.get("priority"))
+		ret._affinity = d.get("affinity")
+		return ret
+
 	@property
 	def affinity(self):
 		if self._affinity is None:
@@ -84,7 +100,7 @@ class SchedulerPlugin(base.Plugin):
 
 		# FIXME: do we want to do this here?
 		# recover original values in case of crash
-		instance._scheduler_original = self._storage_get(instance,
+		instance._scheduler_original = self._get_command_orig(instance,
 				self._scheduler_storage_namespace)
 		if len(instance._scheduler_original) > 0:
 			log.info("recovering scheduling settings from previous run")
