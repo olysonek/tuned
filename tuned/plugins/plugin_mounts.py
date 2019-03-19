@@ -56,6 +56,18 @@ class MountsPlugin(base.Plugin):
 		self._free_devices = set(self._mountpoint_topology.keys())
 		self._assigned_devices = set()
 
+	def _device_to_dict(self, device):
+		attrs = self._mountpoint_topology[device]
+		attrs["disks"] = list(attrs["disk"])
+		return { "mountpoint": device,
+				"attrs": attrs }
+
+	def _dict_to_device(self, device_dict):
+		try:
+			return device_dict["mountpoint"]
+		except KeyError:
+			return None
+
 	@classmethod
 	def _get_config_options(self):
 		return {

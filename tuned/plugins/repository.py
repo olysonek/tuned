@@ -8,11 +8,11 @@ __all__ = ["Repository"]
 
 class Repository(PluginLoader):
 
-	def __init__(self, monitor_repository, storage_factory, hardware_inventory, device_matcher, device_matcher_udev, plugin_instance_factory, global_cfg, variables):
+	def __init__(self, monitor_repository, storage, hardware_inventory, device_matcher, device_matcher_udev, plugin_instance_factory, global_cfg, variables):
 		super(Repository, self).__init__()
 		self._plugins = set()
 		self._monitor_repository = monitor_repository
-		self._storage_factory = storage_factory
+		self._storage = storage
 		self._hardware_inventory = hardware_inventory
 		self._device_matcher = device_matcher
 		self._device_matcher_udev = device_matcher_udev
@@ -32,8 +32,13 @@ class Repository(PluginLoader):
 	def create(self, plugin_name):
 		log.debug("creating plugin %s" % plugin_name)
 		plugin_cls = self.load_plugin(plugin_name)
-		plugin_instance = plugin_cls(self._monitor_repository, self._storage_factory, self._hardware_inventory, self._device_matcher,\
-			self._device_matcher_udev, self._plugin_instance_factory, self._global_cfg, self._variables)
+		plugin_storage = self._storage.create_substore(plugin_name)
+		plugin_instance = plugin_cls(self._monitor_repository,
+				plugin_storage, self._hardware_inventory,
+				self._device_matcher,
+				self._device_matcher_udev,
+				self._plugin_instance_factory,
+				self._global_cfg, self._variables)
 		self._plugins.add(plugin_instance)
 		return plugin_instance
 

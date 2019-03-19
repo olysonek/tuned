@@ -12,10 +12,15 @@ DBUS_INTERFACE = "com.redhat.tuned.control"
 DBUS_OBJECT = "/Tuned"
 DEFAULT_PROFILE = "balanced"
 LOAD_DIRECTORIES = ["/usr/lib/tuned", "/etc/tuned"]
-PERSISTENT_STORAGE_DIR = "/var/lib/tuned"
-RUNTIME_STORAGE_DIR = "/run/tuned"
 PLUGIN_MAIN_UNIT_NAME = "main"
 RECOMMEND_DIRECTORIES = ["/usr/lib/tuned/recommend.d", "/etc/tuned/recommend.d"]
+
+PERSISTENT_STORAGE_DIR = "/var/lib/tuned"
+RUNTIME_STORAGE_DIR = "/run/tuned"
+STORAGE_FILENAME = "storage"
+STORAGE_KEY_ORIGINAL = "original"
+STORAGE_KEY_ORIGINAL_VALUE = "original_value"
+STORAGE_KEY_DEVICE = "device"
 
 TMP_FILE_SUFFIX = ".tmp"
 # max. number of consecutive errors to give up

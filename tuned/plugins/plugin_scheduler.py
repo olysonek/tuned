@@ -77,8 +77,8 @@ class SchedulerPlugin(base.Plugin):
 			"i": schedutils.SCHED_IDLE,
 			}
 
-	def __init__(self, monitor_repository, storage_factory, hardware_inventory, device_matcher, device_matcher_udev, plugin_instance_factory, global_cfg, variables):
-		super(SchedulerPlugin, self).__init__(monitor_repository, storage_factory, hardware_inventory, device_matcher, device_matcher_udev, plugin_instance_factory, global_cfg, variables)
+	def __init__(self, monitor_repository, plugin_storage, hardware_inventory, device_matcher, device_matcher_udev, plugin_instance_factory, global_cfg, variables):
+		super(SchedulerPlugin, self).__init__(monitor_repository, plugin_storage, hardware_inventory, device_matcher, device_matcher_udev, plugin_instance_factory, global_cfg, variables)
 		self._has_dynamic_options = True
 		self._sleep_interval = int(consts.CFG_DEF_SLEEP_INTERVAL)
 		if global_cfg is not None:

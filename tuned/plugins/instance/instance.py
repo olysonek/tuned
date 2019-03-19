@@ -1,8 +1,12 @@
+import tuned.consts as consts
+
 class Instance(object):
 	"""
 	"""
 
-	def __init__(self, plugin, name, devices_expression, devices_udev_regex, script_pre, script_post, options):
+	def __init__(self, plugin, name, devices_expression,
+			devices_udev_regex, script_pre, script_post,
+			options, storage):
 		self._plugin = plugin
 		self._name = name
 		self._devices_expression = devices_expression
@@ -10,6 +14,8 @@ class Instance(object):
 		self._script_pre = script_pre
 		self._script_post = script_post
 		self._options = options
+
+		self.storage = storage
 
 		self._active = True
 		self._has_static_tuning = False
@@ -76,6 +82,8 @@ class Instance(object):
 
 	def apply_tuning(self):
 		self._plugin.instance_apply_tuning(self)
+		self.storage.save_file(consts.STORAGE_FILENAME, True)
+		self.storage.save_file(consts.STORAGE_FILENAME, False)
 
 	def verify_tuning(self, ignore_missing):
 		return self._plugin.instance_verify_tuning(self, ignore_missing)
@@ -85,6 +93,8 @@ class Instance(object):
 
 	def unapply_tuning(self, full_rollback = False):
 		self._plugin.instance_unapply_tuning(self, full_rollback)
+		self.storage.delete_file(consts.STORAGE_FILENAME, True)
+		self.storage.delete_file(consts.STORAGE_FILENAME, False)
 
 	def destroy(self):
 		self.unapply_tuning()

@@ -41,6 +41,15 @@ class AudioPlugin(base.Plugin):
 		except:
 			return None
 
+	def _device_to_dict(self, device):
+		return { "module_name": device }
+
+	def _dict_to_device(self, device_dict):
+		try:
+			return device_dict["module_name"]
+		except KeyError:
+			return None
+
 	@classmethod
 	def _get_config_options(cls):
 		return {

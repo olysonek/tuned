@@ -1,4 +1,5 @@
-from tuned import storage, units, monitors, plugins, profiles, exports, hardware
+from tuned import units, monitors, plugins, profiles, exports, hardware
+import tuned.storage
 from tuned.exceptions import TunedException
 import tuned.logs
 from . import controller
@@ -19,8 +20,7 @@ class Application(object):
 	def __init__(self, profile_name = None, config = None):
 		self._dbus_exporter = None
 
-		storage_provider = storage.PickleProvider()
-		storage_factory = storage.Factory(storage_provider)
+		storage = tuned.storage.Storage()
 
 		self.config = GlobalConfig() if config is None else config
 		if self.config.get_bool(consts.CFG_DYNAMIC_TUNING):
@@ -36,8 +36,12 @@ class Application(object):
 		plugin_instance_factory = plugins.instance.Factory()
 		self.variables = profiles.variables.Variables()
 
-		plugins_repository = plugins.Repository(monitors_repository, storage_factory, hardware_inventory,\
-			device_matcher, device_matcher_udev, plugin_instance_factory, self.config, self.variables)
+		plugins_storage = storage.create_substore("plugins")
+		plugins_repository = plugins.Repository(monitors_repository,
+				plugins_storage, hardware_inventory,
+				device_matcher, device_matcher_udev,
+				plugin_instance_factory, self.config,
+				self.variables)
 		def_instance_priority = int(self.config.get(consts.CFG_DEFAULT_INSTANCE_PRIORITY, consts.CFG_DEF_DEFAULT_INSTANCE_PRIORITY))
 		unit_manager = units.Manager(
 				plugins_repository, monitors_repository,

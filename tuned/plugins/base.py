@@ -19,10 +19,12 @@ class Plugin(object):
 	Intentionally a lot of logic is included in the plugin to increase plugin flexibility.
 	"""
 
-	def __init__(self, monitors_repository, storage_factory, hardware_inventory, device_matcher, device_matcher_udev, instance_factory, global_cfg, variables):
+	def __init__(self, monitors_repository, plugin_storage, hardware_inventory, device_matcher, device_matcher_udev, instance_factory, global_cfg, variables):
 		"""Plugin constructor."""
 
-		self._storage = storage_factory.create(self.__class__.__name__)
+		self._storage = plugin_storage
+		self._instances_storage = plugin_storage.create_substore(
+				"instances")
 		self._monitors_repository = monitors_repository
 		self._hardware_inventory = hardware_inventory
 		self._device_matcher = device_matcher
@@ -103,8 +105,10 @@ class Plugin(object):
 			raise Exception("Plugin instance with name '%s' already exists." % name)
 
 		effective_options = self._get_effective_options(options)
+		instance_storage = self._instances_storage.create_substore(
+				name)
 		instance = self._instance_factory.create(self, name, devices_expression, devices_udev_regex, \
-			script_pre, script_post, effective_options)
+			script_pre, script_post, effective_options, instance_storage)
 		self._instances[name] = instance
 
 		return instance
@@ -406,6 +410,15 @@ class Plugin(object):
 			if "get" not in command or "set" not in command:
 				raise TypeError("Plugin command '%s' is not defined correctly" % command_name)
 
+	def _device_to_dict(self, device):
+		return { "sys_name": device }
+
+	def _dict_to_device(self, device_dict):
+		try:
+			return device_dict["sys_name"]
+		except KeyError:
+			return None
+
 	#
 	# Operations with persistent storage for status data.
 	#
@@ -432,25 +445,38 @@ class Plugin(object):
 		return self._storage.unset(key)
 
 	def _store_devices(self, instance):
-		TODO
+		# TODO
+		pass
 
 	def _store_scripts(self, instance):
-		TODO
-		store_script_pre
-		store_script_post
+		# TODO
+		#store_script_pre
+		#store_script_post
+		pass
 
 	# Store a command that has been applied. new_value contains an expanded value.
 	def _store_command_applied(self, instance, command, new_value,
 			device = None, persistent = False):
-		TODO
+		# TODO
+		pass
 
 	# Store the original value of a setting
 	def _store_command_orig(self, instance, command, orig_value,
 			device = None, persistent = False):
-		TODO
+		instance_data = instance.storage.get_data(
+				consts.STORAGE_FILENAME,
+				persistent)
+		device_dict = self._device_to_dict(device)
+		data = { consts.STORAGE_KEY_ORIGINAL_VALUE: orig_value,
+			consts.STORAGE_KEY_DEVICE: device_dict }
+		data_original = instance_data.setdefault(
+				consts.STORAGE_KEY_ORIGINAL, {})
+		command_original = data_original.setdefault(command, [])
+		command_original.append(data)
 
 	def _get_command_orig(self, instance, command):
-		TODO
+		# TODO
+		pass
 
 	#
 	# Command execution, verification, and cleanup.
