@@ -5,7 +5,7 @@ import json
 class Storage(object):
 	def __init__(self, persistent_dir = consts.PERSISTENT_STORAGE_DIR,
 			runtime_dir = consts.RUNTIME_STORAGE_DIR,
-			parent = None)
+			parent = None):
 		self._persistent_dir = persistent_dir
 		self._runtime_dir = runtime_dir
 		self._parent = parent

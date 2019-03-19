@@ -131,8 +131,10 @@ class Daemon(object):
 		return re.search(r"\b(shutdown|reboot|halt|poweroff)\.target.*start", out) is None
 
 	def _oneshot_rollback(self):
-		units = { "bootloader": { "foo": {} },
-		          "disk": { "disk_a"
+		# TODO
+		pass
+		#units = { "bootloader": { "foo": {} },
+		#          "disk": { "disk_a"
 
 	def _thread_code(self):
 		if self._profile is None:

@@ -476,7 +476,7 @@ class Plugin(object):
 
 	def _get_command_orig(self, instance, command):
 		# TODO
-		pass
+		return {}
 
 	#
 	# Command execution, verification, and cleanup.
