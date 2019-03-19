@@ -99,7 +99,7 @@ class Plugin(object):
 	# Interface for manipulation with instances of the plugin.
 	#
 
-	def create_instance(self, name, devices_expression, devices_udev_regex, script_pre, script_post, options):
+	def create_instance(self, name, devices_expression, devices_udev_regex, script_pre, script_post, options, index):
 		"""Create new instance of the plugin and seize the devices."""
 		if name in self._instances:
 			raise Exception("Plugin instance with name '%s' already exists." % name)
@@ -109,6 +109,7 @@ class Plugin(object):
 				name)
 		instance = self._instance_factory.create(self, name, devices_expression, devices_udev_regex, \
 			script_pre, script_post, effective_options, instance_storage)
+		self._store_instance_index(instance, index)
 		self._instances[name] = instance
 
 		return instance
@@ -447,6 +448,17 @@ class Plugin(object):
 		key = self._storage_key(instance.name, command["name"], device_name)
 		return self._storage.unset(key)
 
+	def _get_instance_data(self, instance, persistent):
+		return instance.storage.get_data(
+				consts.STORAGE_FILENAME,
+				persistent)
+
+	def _store_instance_index(self, instance, index):
+		instance_data = self._get_instance_data(instance, True)
+		instance_data["index"] = index
+		instance_data = self._get_instance_data(instance, False)
+		instance_data["index"] = index
+
 	def _store_devices(self, instance):
 		# TODO
 		pass
@@ -466,9 +478,7 @@ class Plugin(object):
 	# Store the original value of a setting
 	def _store_command_orig(self, instance, command, orig_value,
 			device = None, persistent = False):
-		instance_data = instance.storage.get_data(
-				consts.STORAGE_FILENAME,
-				persistent)
+		instance_data = self._get_instance_data(instance, persistent)
 		device_dict = self._device_to_dict(device)
 		data = { consts.STORAGE_KEY_ORIGINAL_VALUE: orig_value,
 			consts.STORAGE_KEY_DEVICE: device_dict }

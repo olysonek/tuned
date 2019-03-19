@@ -69,13 +69,13 @@ class Manager(object):
 				continue
 
 		instances = []
-		for instance_info in instance_info_list:
+		for ix, instance_info in enumerate(instance_info_list):
 			plugin = plugins_by_name[instance_info.type]
 			if plugin is None:
 				continue
 			log.debug("creating '%s' (%s)" % (instance_info.name, instance_info.type))
 			new_instance = plugin.create_instance(instance_info.name, instance_info.devices, instance_info.devices_udev_regex, \
-				instance_info.script_pre, instance_info.script_post, instance_info.options)
+				instance_info.script_pre, instance_info.script_post, instance_info.options, ix)
 			instances.append(new_instance)
 		for instance in instances:
 			instance.plugin.init_devices()
