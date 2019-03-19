@@ -460,6 +460,7 @@ class Plugin(object):
 		for command in [command for command in list(self._commands.values()) if not command["per_device"]]:
 			new_value = self._variables.expand(instance.options.get(command["name"], None))
 			if new_value is not None:
+				self._store_command_applied(instance, command, new_value)
 				self._execute_non_device_command(instance, command, new_value)
 
 	def _execute_all_device_commands(self, instance, devices):
@@ -467,6 +468,7 @@ class Plugin(object):
 			new_value = self._variables.expand(instance.options.get(command["name"], None))
 			if new_value is None:
 				continue
+			self._store_command_applied(instance, command, new_value)
 			for device in devices:
 				self._execute_device_command(instance, command, device, new_value)
 
@@ -534,7 +536,6 @@ class Plugin(object):
 		else:
 			new_value = self._check_and_save_value(instance, command, device, new_value)
 			if new_value is not None:
-				self._store_device_command_applied(instance, command, device, new_value)
 				command["set"](new_value, device, sim = False)
 
 	def _execute_non_device_command(self, instance, command, new_value):
@@ -543,7 +544,6 @@ class Plugin(object):
 		else:
 			new_value = self._check_and_save_value(instance, command, None, new_value)
 			if new_value is not None:
-				self._store_command_applied(instance, command, new_value)
 				command["set"](new_value, sim = False)
 
 	def _norm_value(self, value):

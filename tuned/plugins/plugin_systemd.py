@@ -111,7 +111,8 @@ class SystemdPlugin(base.Plugin):
 	def _cmdline(self, instance, enabling, value, verify, ignore_missing):
 		conf_affinity = None
 		conf_affinity_unpacked = None
-		v = self._cmd.unescape(self._variables.expand(self._cmd.unquote(value)))
+		value = self._variables.expand(value)
+		v = self._cmd.unescape(self._cmd.unquote(value))
 		v_unpacked = " ".join(str(v) for v in self._cmd.cpulist_unpack(v))
 		conf = self._read_systemd_system_conf()
 		if conf is not None:

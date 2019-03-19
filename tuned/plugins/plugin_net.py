@@ -396,9 +396,6 @@ class NetTuningPlugin(base.Plugin):
 						device = device)
 				return res
 			# saved are only those parameters which passed checks
-			self._store_device_command_applied(instance, context,
-					device, " ".join(
-					self._cmd.dict2list(params_set)))
 			self._storage_set(instance, context, " ".join(
 					self._cmd.dict2list(relevant_params_current)),
 					device_name = device)
