@@ -47,7 +47,7 @@ class Storage(object):
 	def _encode(self, obj):
 		return json.dumps(obj)
 
-	def _decode(self, s)
+	def _decode(self, s):
 		return json.loads(s)
 
 	def save_file(self, filename, persistent):

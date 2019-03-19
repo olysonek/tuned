@@ -486,7 +486,8 @@ class Plugin(object):
 		for command in [command for command in list(self._commands.values()) if not command["per_device"]]:
 			new_value = self._variables.expand(instance.options.get(command["name"], None))
 			if new_value is not None:
-				self._store_command_applied(instance, command, new_value)
+				self._store_command_applied(instance,
+						command["name"], new_value)
 				self._execute_non_device_command(instance, command, new_value)
 
 	def _execute_all_device_commands(self, instance, devices):
@@ -494,7 +495,8 @@ class Plugin(object):
 			new_value = self._variables.expand(instance.options.get(command["name"], None))
 			if new_value is None:
 				continue
-			self._store_command_applied(instance, command, new_value)
+			self._store_command_applied(instance, command["name"],
+					new_value)
 			for device in devices:
 				self._execute_device_command(instance, command, device, new_value)
 
@@ -552,7 +554,7 @@ class Plugin(object):
 		current_value = self._get_current_value(command, device)
 		new_value = self._process_assignment_modifiers(new_value, current_value)
 		if new_value is not None and current_value is not None:
-			self._store_command_orig(instance, command,
+			self._store_command_orig(instance, command["name"],
 					current_value, device = device)
 		return new_value
 
