@@ -1,5 +1,3 @@
-import tuned.consts as consts
-
 class Instance(object):
 	"""
 	"""
@@ -82,8 +80,6 @@ class Instance(object):
 
 	def apply_tuning(self):
 		self._plugin.instance_apply_tuning(self)
-		self.storage.save_file(consts.STORAGE_FILENAME, True)
-		self.storage.save_file(consts.STORAGE_FILENAME, False)
 
 	def verify_tuning(self, ignore_missing):
 		return self._plugin.instance_verify_tuning(self, ignore_missing)
@@ -93,8 +89,6 @@ class Instance(object):
 
 	def unapply_tuning(self, full_rollback = False):
 		self._plugin.instance_unapply_tuning(self, full_rollback)
-		self.storage.delete_file(consts.STORAGE_FILENAME, True)
-		self.storage.delete_file(consts.STORAGE_FILENAME, False)
 
 	def destroy(self):
 		self.unapply_tuning()

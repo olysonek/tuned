@@ -42,7 +42,10 @@ class Storage(object):
 		if self._parent is not None:
 			self._parent._create_dir(persistent)
 		path = self._get_directory(persistent)
-		os.mkdir(path)
+		try:
+			os.mkdir(path)
+		except:
+			pass
 
 	def _encode(self, obj):
 		return json.dumps(obj)
@@ -58,6 +61,35 @@ class Storage(object):
 		with open(path, "w") as f:
 			f.write(encoded)
 
+	def save_all(self):
+		for filename in self._persistent_files:
+			self.save_file(filename, True)
+		for filename in self._runtime_files:
+			self.save_file(filename, False)
+
+	def delete_file(self, filename, persistent):
+		if persistent:
+			files = self._persistent_files
+		else:
+			files = self._runtime_files
+		del files[filename]
+		try:
+			os.unlink(filename)
+		except:
+			pass
+
+	def delete_all_persistent(self):
+		for filename in self._persistent_files:
+			self.delete_file(filename, True)
+
+	def delete_all_runtime(self):
+		for filename in self._runtime_files:
+			self.delete_file(filename, False)
+
+	def delete_all(self):
+		self.delete_all_persistent()
+		self.delete_all_runtime()
+
 	def _replace_data(self, filename, persistent, data):
 		if persistent:
 			self._persistent_files[filename] = data
@@ -71,14 +103,3 @@ class Storage(object):
 		data = self._decode(encoded)
 		self._replace_data(filename, persistent, data)
 		return data
-
-	def delete_file(self, filename, persistent):
-		if persistent:
-			files = self._persistent_files
-		else:
-			files = self._runtime_files
-		del files[filename]
-		try:
-			os.unlink(filename)
-		except:
-			pass
